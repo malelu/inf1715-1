@@ -13,7 +13,7 @@ int done = 0;
 
 [0-9]+ {return INT;}
 
-[a-zA-z]+ {return VAR;}
+[a-zA-Z]+ {return VAR;}
 
 [(|)|>|<|>=|<=|=|<|>|+|-|*|/]	{return OPERAC;}
 
