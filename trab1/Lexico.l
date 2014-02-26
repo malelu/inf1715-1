@@ -19,17 +19,17 @@ int done = 0;
 
 [0-9]+ {return INT;}
 
-[a-zA-Z]+ {return IDENT;}
-
 \(|\)|\>|\<|\>=|\<=|\<> {return OPRELAC;}
+
+(;|if|else|end|while|loop|fun|return|new|string|int|char|bool|true|false|and|or|not) {return RESERV;}
+
+[a-zA-Z]+ {return IDENT;}
 
 [+|-|*|/|=]	{return OPMAT;}
 
 "/*"([^*]|\*+[^*/])*\*+"/" {return COMMENT;}
 
 %[a-zA-Z]+([a-z]*[\t][a-z]*); {return FUNC;}
-
-%[if|else|end|while|loop|fun|return|new|string|int|char|bool|true|false|and|or|not] {return RESERV;}
 
 ([ \t\n]*)	{ }
 
