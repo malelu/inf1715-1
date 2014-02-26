@@ -1,8 +1,14 @@
 %{
 #define INT	100
 #define STRING	200
-#define VAR	300
-#define OPERAC	400
+#define FUNC	300
+#define IDENT	301
+#define DECTIPO 302
+#define OPMAT	601
+#define OPRELAC	602
+#define RESERV	700
+#define COMMENT	800
+#define EOL	901
 #define ERROR	999999
 
 int done = 0;
@@ -13,9 +19,17 @@ int done = 0;
 
 [0-9]+ {return INT;}
 
-[a-zA-Z]+ {return VAR;}
+[a-zA-Z]+ {return IDENT;}
 
-[(|)|>|<|>=|<=|=|<|>|+|-|*|/]	{return OPERAC;}
+[(|)|>|<|>=|<=|<>] {return OPRELAC;}
+
+[+|-|*|/|=]	{return OPMAT;}
+
+%[a-zA-Z]+([a-z]*[\t][a-z]*); {return FUNC;}
+
+
+
+%[if|else|end|while|loop|fun|return|new|string|int|char|bool|true|false|and|or|not] {return RESERV;}
 
 ([ \t\n]*)	{ }
 
