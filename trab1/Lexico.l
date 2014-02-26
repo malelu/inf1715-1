@@ -25,6 +25,8 @@ int done = 0;
 
 [+|-|*|/|=]	{return OPMAT;}
 
+"/*"([^*]|\*+[^*/])*\*+"/" {return COMMENT;}
+
 %[a-zA-Z]+([a-z]*[\t][a-z]*); {return FUNC;}
 
 
