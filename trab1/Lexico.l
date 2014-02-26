@@ -21,7 +21,9 @@ int done = 0;
 
 \(|\)|\>|\<|\>=|\<=|\<> {return OPRELAC;}
 
-(;|if|else|end|while|loop|fun|return|new|string|int|char|bool|true|false|and|or|not) {return RESERV;}
+(int|string|bool|char|"["[0-9]*"]"char) {return DECTIPO;}
+
+(;|if|else|end|while|loop|fun|return|new|true|false|and|or|not) {return RESERV;}
 
 [a-zA-Z]+ {return IDENT;}
 
