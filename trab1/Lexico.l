@@ -21,15 +21,13 @@ int done = 0;
 
 [a-zA-Z]+ {return IDENT;}
 
-[(|)|>|<|>=|<=|<>] {return OPRELAC;}
+\(|\)|\>|\<|\>=|\<=|\<> {return OPRELAC;}
 
 [+|-|*|/|=]	{return OPMAT;}
 
 "/*"([^*]|\*+[^*/])*\*+"/" {return COMMENT;}
 
 %[a-zA-Z]+([a-z]*[\t][a-z]*); {return FUNC;}
-
-
 
 %[if|else|end|while|loop|fun|return|new|string|int|char|bool|true|false|and|or|not] {return RESERV;}
 
