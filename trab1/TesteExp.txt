@@ -1,0 +1,13 @@
+int main (void){
+  int a =50;
+  int b =20;
+  int c=a+b;
+
+  while(c >= 30)
+	{c/2;}
+  loop
+
+  if(c<>40)
+  	{c=40;}
+  return 0;
+}
