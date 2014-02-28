@@ -34,8 +34,12 @@ opmat	[-+*/]
 oprelac	\>|\<|\>=|\<=|\<>|and|or|not
 tipo	(int|char|bool|string)
 var	{letra}({digito}|{letra})*
-expr	({var}|{digito}*)({blanks}({opmat}|{oprelac}){blanks}({var}|{digito}*))*
-blanks	[ \t]*
+expr	({var}|{digito}*)({b}({opmat}|{oprelac}){b}({var}|{digito}*))*	
+b	[ \t]*
+cmd	{cmdif}|{cmdwhile}|{cmdret}|{cmdatrib}|{chamada}
+cmdret	"return"?({b}{expr})?
+chamada	{var}{b}{op}{lisexp}{cp}
+lisexp	()|{exp}{b}"{"","{b}"exp""}"{}
 
 
 
@@ -43,6 +47,16 @@ blanks	[ \t]*
 %%
 
 [\n]*	{linha++;}
+
+{cmdret} {return RET;}
+";"	{return EOL;}
+"if"	{return IF;}
+"else"	{return ELSE;}
+"end"	{return END;}
+"while"	{return WHILE;}
+"loop"	{return LOOP;}
+"new"	{return NEW;}
+"true"|"false" {return BOOL;}
 
 "("	{ return OP; }
 ")"	{ return CP; }
@@ -53,19 +67,9 @@ blanks	[ \t]*
 
 {expr} {return EXP;}
 
-{var}{blanks}"="{blanks}{expr} {return ATRIB;}
+{var}{b}"="{b}{expr} {return ATRIB;}
 
-{var}{blanks}":"{blanks}"["[0-9]*"]"{tipo} {return DECVAR;}
-
-";"	{return EOL;}
-"if"	{return IF;}
-"else"	{return ELSE;}
-"end"	{return END;}
-"while"	{return WHILE;}
-"loop"	{return LOOP;}
-"return" {return RET;}
-"new"	{return NEW;}
-"true"|"false" {return BOOL;}
+{var}{b}":"{b}"["[0-9]*"]"{tipo} {return DECVAR;}
 
 "/*"([^*]|\*+[^*/])*\*+"/" {return COMMENT;}
 
