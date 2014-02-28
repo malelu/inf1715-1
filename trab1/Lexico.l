@@ -3,7 +3,7 @@
 #define CP	051
 #define INT	101
 #define IDENT	111
-#define DECVAR	112
+#define DECLVAR	112
 #define ATRIB	113
 #define STRING	200
 #define BOOL	201
@@ -24,22 +24,36 @@
 #define ERROR	999999
 int linha = 1;
 int done = 0;
+extern FILE* yyin;
+extern FILE* yyout;
 %}
 
 op	"("
 cp	")"
 digito	[0-9]
 letra	[a-z]
-opmat	[-+*/]
 oprelac	\>|\<|\>=|\<=|\<>|and|or|not
 tipo	(int|char|bool|string)
-var	{letra}({digito}|{letra})*
-expr	({var}|{digito}*)({b}({opmat}|{oprelac}){b}({var}|{digito}*))*	
+ID	{letra}({digito}|{letra})*
+exp	{expr}|("new"{b}("["{expr}"]")?{b}{tipo})
+expr	({ID}|{digito}*)({b}([-+*/]|{oprelac}){b}({ID}|{digito}*))*	
 b	[ \t]*
+nl	[ \n]*
 cmd	{cmdif}|{cmdwhile}|{cmdret}|{cmdatrib}|{chamada}
-cmdret	"return"?({b}{expr})?
-chamada	{var}{b}{op}{lisexp}{cp}
-lisexp	()|{exp}{b}"{"","{b}"exp""}"{}
+cmdatrib {ID}{b}"="{b}{exp}
+cmdret	"return"({b}{expr})?
+chamada	{ID}{b}"("{listexp}")"
+fun	"fun"{b}{ID}"("({params})?")"{b}(":"{b}{tipo})?{nl}{b}{declvar}{nl}{cmd}{nl}"end"{nl}
+
+cmdif	"if"{b}{exp}{nl}({cmd}{nl})*{cmdelse}?"end"
+cmdelse	"else"{b}("if")?{b}{exp}{nl}({cmd}{nl})*
+cmdwhile "while"{b}{exp}{nl}({cmd}{nl})*"loop"
+params	({parametro}{b}","{b}{parametro}*)?
+parametro {declvar}
+
+
+listexp	()|{exp}{b}(","{b}{exp})*
+declvar	{ID}{b}":"{b}("["[0-9]*"]")?{tipo}
 
 
 
@@ -47,7 +61,7 @@ lisexp	()|{exp}{b}"{"","{b}"exp""}"{}
 %%
 
 [\n]*	{linha++;}
-
+{fun}	{return FUNC;}
 {cmdret} {return RET;}
 ";"	{return EOL;}
 "if"	{return IF;}
@@ -57,19 +71,17 @@ lisexp	()|{exp}{b}"{"","{b}"exp""}"{}
 "loop"	{return LOOP;}
 "new"	{return NEW;}
 "true"|"false" {return BOOL;}
-
 "("	{ return OP; }
 ")"	{ return CP; }
                             
 \"([^\n"\\]|\\["\\])*\" { return STRING; }
 
-{var} {return IDENT;}
 
 {expr} {return EXP;}
 
-{var}{b}"="{b}{expr} {return ATRIB;}
+{cmdatrib} {return ATRIB;}
 
-{var}{b}":"{b}"["[0-9]*"]"{tipo} {return DECVAR;}
+{declvar} {return DECLVAR;}
 
 "/*"([^*]|\*+[^*/])*\*+"/" {return COMMENT;}
 
@@ -84,11 +96,15 @@ yywrap() {
 }
 
 int main() {
+	//yyin=fopen("TesteExp.txt","r");
+	//yyout=fopen("Saida.txt","w");
 	while (!done) {
 		printf("%d\n", yylex());
 		printf("%s -> linha %d \n", yytext,linha);
 		
 	}
+	fclose(yyin);
+	fclose(yyout);
 	return 0;
 }
 
