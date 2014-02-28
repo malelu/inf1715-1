@@ -3,7 +3,8 @@
 #define CP	051
 #define INT	101
 #define IDENT	111
-#define DECTIPO 112
+#define DECVAR	112
+#define ATRIB	113
 #define STRING	200
 #define BOOL	201
 #define FUNC	300
@@ -21,23 +22,27 @@
 #define COMMENT	800
 #define EOL	987
 #define ERROR	999999
-#define WHITESPACES 123
 int linha = 1;
 int done = 0;
 %}
 
+op	"("
+cp	")"
 digito	[0-9]
 letra	[a-z]
+opmat	[-+*/]
+oprelac	\>|\<|\>=|\<=|\<>|and|or|not
+tipo	(int|char|bool|string)
 var	{letra}({digito}|{letra})*
-expr	({var}|{digito}*)[-+*/]({var}|{digito}*)
+expr	({var}|{digito}*)({blanks}({opmat}|{oprelac}){blanks}({var}|{digito}*))*
+blanks	[ \t]*
+
 
 
 
 %%
 
 [\n]*	{linha++;}
-
-[ \t]*	{return WHITESPACES;}
 
 "("	{ return OP; }
 ")"	{ return CP; }
@@ -48,6 +53,10 @@ expr	({var}|{digito}*)[-+*/]({var}|{digito}*)
 
 {expr} {return EXP;}
 
+{var}{blanks}"="{blanks}{expr} {return ATRIB;}
+
+{var}{blanks}":"{blanks}"["[0-9]*"]"{tipo} {return DECVAR;}
+
 ";"	{return EOL;}
 "if"	{return IF;}
 "else"	{return ELSE;}
@@ -56,9 +65,7 @@ expr	({var}|{digito}*)[-+*/]({var}|{digito}*)
 "loop"	{return LOOP;}
 "return" {return RET;}
 "new"	{return NEW;}
-(true|false) {return BOOL;}
-
-\>|\<|\>=|\<=|\<>|and|or|not {return OPRELAC;}
+"true"|"false" {return BOOL;}
 
 "/*"([^*]|\*+[^*/])*\*+"/" {return COMMENT;}
 
