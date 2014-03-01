@@ -1,15 +1,23 @@
 #include <stdlib.h>
 
 typedef struct token{
-  void* valor;
+  int valor;
+  char* nome;
   int linha;
   struct token *prox;
 }Token;
 
-Token* criaToken(void* val,int linha){
-  Token* novo=(Token*)malloc(sizeof(Token))
-  novo->valor=val;
-  novo->linha=linha;
-  novo->prox=NULL;
-  return novo;
-}
+typedef struct fila{
+  Token* prim;
+  int quant;
+}Fila;
+
+Token* criaToken(int val,char* nome,int linha);
+
+Fila* criaFila();
+
+int FilaVazia(Fila* l);
+
+void insere(Fila* f,Token* t);
+
+void imprime(Fila* f);

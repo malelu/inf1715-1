@@ -92,7 +92,6 @@ declvar	{ID}{b}":"{b}("["[0-9]*"]")?{tipo}
 {digito}* {return INT;}
 {oprelac} {return OPRELAC;}
 {opmat}	{return OPMAT;}
-{nl}	{return NL;} 
 
 
  
@@ -118,33 +117,72 @@ yywrap() {
 	done = 1;
 }
 
-Token* criaToken(void* val,int linha){
-  Token* novo=(Token*)malloc(sizeof(Token))
+Token* criaToken(int val,char* nome,int linha){
+  Token* novo=(Token*)malloc(sizeof(Token));
   novo->valor=val;
+  novo->nome=nome;
   novo->linha=linha;
   novo->prox=NULL;
   return novo;
 }
 
+Fila* criaFila(){
+  Fila *n=(Fila*)malloc(sizeof(Fila));
+  n->prim=NULL;
+  n->quant=0;
+  return n;
+}
+
+int FilaVazia(Fila* f){
+  if(f->prim==NULL)
+  	return 1;
+  else
+	return 0;
+}
+
+void insere(Fila* f,Token* t){
+  if(FilaVazia(f))
+  	f->prim=t;
+  else{
+	Token* temp=f->prim;
+  	while(temp->prox!=NULL)
+		temp=temp->prox;
+	temp->prox=t;
+  }
+  f->quant++;
+}
+
+void imprime(Fila* f){
+  Token* temp=f->prim;
+  while(temp->prox!=NULL){
+	printf("%d %s ->linha %d \n",temp->valor,temp->nome,temp->linha);
+	temp=temp->prox;
+  }
+}
+
 int main() {
-	Token* t,ant;
-	//yyin=fopen("TesteExp.txt","r");
+	Token *t;
+	int valort;
+	Fila* f=criaFila();
+	yyin=fopen("TesteExp.txt","r");
 	//yyout=fopen("Saida.txt","w");
 	while (!done) {
-		printf("%d\n", yylex());
-		t=criaToken(yytext,linha);
-		if(ant!=NULL) /*Ant ja foi inicializado*/
+		valort=yylex();
+		printf("%d\n", valort);
+		t=criaToken(valort,yytext,linha);
+		insere(f,t);
+		/*if(ant!=NULL) Ant ja foi inicializado
 			ant->prox=t;
 		ant=t;
 		if(isdigit(yytext))
 			t->valor=(int)(atoi(yytext));
 		else
 			t->valor=(char*)yytext;
-		t->linha=linha;	
+		t->linha=linha;	*/
 		printf("%s -> linha %d \n", yytext,linha);
-		printf("%s ->linha %d \n",(char*)t->valor,t->linha);
-		
+		printf("%d %s ->linha %d \n",t->valor,t->nome,t->linha);	
 	}
+	//imprime(f);
 	fclose(yyin);
 	fclose(yyout);
 	return 0;
