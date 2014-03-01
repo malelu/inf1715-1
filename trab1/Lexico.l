@@ -1,14 +1,24 @@
+
 %{
+#include "Lexico.h"
+
+#define	NL	000
 #define OP	050
 #define CP	051
 #define INT	101
-#define IDENT	111
+#define CHAR	102
+#define ID	111
 #define DECLVAR	112
 #define ATRIB	113
 #define STRING	200
 #define BOOL	201
-#define FUNC	300
-#define EXP	400
+#define AND	300
+#define OR	301
+#define NOT	302
+#define TRUE	310
+#define FALSE	311
+#define FUNC	401
+#define EXP	402
 #define	RET	501
 #define NEW	502
 #define END	503
@@ -18,12 +28,11 @@
 #define	LOOP	522
 #define OPMAT	601
 #define OPRELAC	602
-#define RESERV	700
 #define COMMENT	800
-#define EOL	987
 #define ERROR	999999
 int linha = 1;
 int done = 0;
+Token* corr;
 extern FILE* yyin;
 extern FILE* yyout;
 %}
@@ -32,9 +41,10 @@ op	"("
 cp	")"
 digito	[0-9]
 letra	[a-z]
-oprelac	\>|\<|\>=|\<=|\<>|and|or|not
+oprelac	\>|\<|\>=|\<=|\<>|\==
+opmat	[-+*/]
 tipo	(int|char|bool|string)
-ID	{letra}({digito}|{letra})*
+ID	"_"({digito}|{letra})*
 exp	{expr}|("new"{b}("["{expr}"]")?{b}{tipo})
 expr	({ID}|{digito}*)({b}([-+*/]|{oprelac}){b}({ID}|{digito}*))*	
 b	[ \t]*
@@ -43,36 +53,49 @@ cmd	{cmdif}|{cmdwhile}|{cmdret}|{cmdatrib}|{chamada}
 cmdatrib {ID}{b}"="{b}{exp}
 cmdret	"return"({b}{expr})?
 chamada	{ID}{b}"("{listexp}")"
-fun	"fun"{b}{ID}"("({params})?")"{b}(":"{b}{tipo})?{nl}{b}{declvar}{nl}{cmd}{nl}"end"{nl}
+fun	"fun"
 
 cmdif	"if"{b}{exp}{nl}({cmd}{nl})*{cmdelse}?"end"
-cmdelse	"else"{b}("if")?{b}{exp}{nl}({cmd}{nl})*
+cmdelse	"else"{b}("if"{exp})?{nl}{b}({cmd}{nl})*
 cmdwhile "while"{b}{exp}{nl}({cmd}{nl})*"loop"
 params	({parametro}{b}","{b}{parametro}*)?
 parametro {declvar}
 
 
-listexp	()|{exp}{b}(","{b}{exp})*
+listexp	({exp}{b}(","{b}{exp})*)?
 declvar	{ID}{b}":"{b}("["[0-9]*"]")?{tipo}
 
 
 
 
 %%
-
-[\n]*	{linha++;}
-{fun}	{return FUNC;}
-{cmdret} {return RET;}
-";"	{return EOL;}
+{nl}	{linha++;}
+"fun"	{return FUNC;}
+"return" {return RET;}
+":"	{return DECLVAR;}
 "if"	{return IF;}
 "else"	{return ELSE;}
 "end"	{return END;}
 "while"	{return WHILE;}
 "loop"	{return LOOP;}
 "new"	{return NEW;}
-"true"|"false" {return BOOL;}
+"true"	{return TRUE;}
+"false" {return FALSE;}
+"and"	{return AND;}
+"or"	{return OR;}
+"not"	{return NOT;}
 "("	{ return OP; }
 ")"	{ return CP; }
+"="	{return ATRIB;}
+{letra}? {return CHAR;}
+{ID}	{return ID;}
+{digito}* {return INT;}
+{oprelac} {return OPRELAC;}
+{opmat}	{return OPMAT;}
+{nl}	{return NL;} 
+
+
+ 
                             
 \"([^\n"\\]|\\["\\])*\" { return STRING; }
 
@@ -95,12 +118,31 @@ yywrap() {
 	done = 1;
 }
 
+Token* criaToken(void* val,int linha){
+  Token* novo=(Token*)malloc(sizeof(Token))
+  novo->valor=val;
+  novo->linha=linha;
+  novo->prox=NULL;
+  return novo;
+}
+
 int main() {
+	Token* t,ant;
 	//yyin=fopen("TesteExp.txt","r");
 	//yyout=fopen("Saida.txt","w");
 	while (!done) {
 		printf("%d\n", yylex());
+		t=criaToken(yytext,linha);
+		if(ant!=NULL) /*Ant ja foi inicializado*/
+			ant->prox=t;
+		ant=t;
+		if(isdigit(yytext))
+			t->valor=(int)(atoi(yytext));
+		else
+			t->valor=(char*)yytext;
+		t->linha=linha;	
 		printf("%s -> linha %d \n", yytext,linha);
+		printf("%s ->linha %d \n",(char*)t->valor,t->linha);
 		
 	}
 	fclose(yyin);
