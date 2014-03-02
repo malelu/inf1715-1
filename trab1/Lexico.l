@@ -2,7 +2,6 @@
 %{
 #include "Lexico.h"
 
-#define	NL	100
 #define OP	101
 #define CP	102
 #define PONT	103
@@ -43,41 +42,22 @@
 #define	G	615
 #define	GE	616
 #define COMMENT	800
+#define	NL	987
 #define ERROR	999999
 int linha = 1;
 int done = 0;
-Token* corr;
 extern FILE* yyin;
-extern FILE* yyout;
+FILE* yyout;
 %}
 
 op	"("
 cp	")"
 digito	[0-9]
 letra	[a-z]
-oprelac	\>|\<|\>=|\<=|\<>|\==
-opmat	[-+*/]
-tipo	(int|char|bool|string)
-ID	("_"|{letra})({digito}|{letra})*
-exp	{expr}|("new"{b}("["{expr}"]")?{b}{tipo})
-expr	({ID}|{digito}*)({b}([-+*/]|{oprelac}){b}({ID}|{digito}*))*	
-b	[ \t]+
-nl	[\n]*
-cmd	{cmdif}|{cmdwhile}|{cmdret}|{cmdatrib}|{chamada}
-cmdatrib {ID}{b}"="{b}{exp}
-cmdret	"return"({b}{expr})?
-chamada	{ID}{b}"("{listexp}")"
+ID	("_"|{letra})({digito}|{letra})*	
+b	[ \t\n\r\v\f]+
+nl	\n
 fun	"fun"
-
-cmdif	"if"{b}{exp}{nl}({cmd}{nl})*{cmdelse}?"end"
-cmdelse	"else"{b}("if"{exp})?{nl}{b}({cmd}{nl})*
-cmdwhile "while"{b}{exp}{nl}({cmd}{nl})*"loop"
-params	({parametro}{b}","{b}{parametro}*)?
-parametro {declvar}
-
-
-listexp	({exp}{b}(","{b}{exp})*)?
-declvar	{ID}{b}":"{b}("["[0-9]*"]")?{tipo}
 vetor	("["[0-9]*"]")
 
 
@@ -85,6 +65,7 @@ vetor	("["[0-9]*"]")
 
 %%
 {nl}	{linha++;}
+([ \v\t\n]*)	{ }
 ","	{return PONT;}
 "fun"	{return FUNC;}
 "return" {return RET;}
@@ -112,22 +93,21 @@ vetor	("["[0-9]*"]")
 "<="	{return LE;}
 ">"	{return G;}
 ">="	{return GE;}
+{letra}? {return CHAR;}
 {vetor}?"int" {return DECINT;}
 (({vetor}"char")|"string") {return DECSTRING;}
 "char" 	{return DECCHAR;}
 {vetor}?"bool" {return DECBOOL;}	
 {ID}	{return ID;}
-{letra}? {return CHAR;}
 {digito}* {return LITNUM;}
 
 
  
                             
-\"([^\n"\\]|\\["\\])*\" { return STRING; }
+\"(\\.|[^"])*\" { return STRING; }
 
 "/*"([^*]|\*+[^*/])*\*+"/" {return COMMENT;}
 
-([ \t\n]*)	{ }
 
 .           { return ERROR; }
 
@@ -180,21 +160,32 @@ void imprime(Fila* f){
   }
 }
 
-int main() {
+int main(int argc,char* argv[]) {
 	Token *t;
-	int valort;
+	int valort,i;
 	Fila* f=criaFila();
-	//yyin=fopen("TesteExp.txt","r");
-	//yyout=fopen("Saida.txt","w");
-	while (!done) {
-		valort=yylex();
-		printf("%d\n", valort);
-		t=criaToken(valort,yytext,linha);
-		insere(f,t);
-		printf("%s -> linha %d \n", yytext,linha);
-		//printf("%d %s ->linha %d \n",t->valor,t->nome,t->linha);	
+	yyout=fopen("Saida.txt","w");
+	if(!yyout){
+		printf("Erro ao abrir o arquivo de escrita\n");
+		exit(1);
 	}
-	//imprime(f);
+	if(argc>1)
+		for(i=1;i<argc;i++){
+			fprintf(yyout,"-----------TESTE: %s ---------------\n",argv[i]);
+			yyin=fopen(argv[i],"r");
+			if(!yyin){
+				printf("Erro ao abrir o arquivo de leitura\n");
+				exit(1);
+			}
+			while (!done) {
+				valort=yylex();
+				fprintf(yyout,"%d\n", valort);
+				t=criaToken(valort,yytext,linha);
+				insere(f,t);
+				//printf("%s -> linha %d \n", yytext,linha);
+				fprintf(yyout,"%d %s ->linha %d \n",t->valor,t->nome,t->linha);	
+			}
+		}
 	fclose(yyin);
 	fclose(yyout);
 	return 0;
