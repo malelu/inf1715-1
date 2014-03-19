@@ -53,8 +53,8 @@ FILE* yyout;
 op	"("
 cp	")"
 digito	[0-9]
-letra	[a-z]
-ID	("_"|{letra})({digito}|{letra})*	
+letra	[a-zA-Z]
+ID	(_|{letra})+(_|{letra}|{digito})*	
 b	[ \t\n\r\v\f]+
 nl	\n
 fun	"fun"
@@ -93,7 +93,6 @@ vetor	("["[0-9]*"]")
 "<="	{return LE;}
 ">"	{return G;}
 ">="	{return GE;}
-{letra}? {return CHAR;}
 {vetor}?"int" {return DECINT;}
 (({vetor}"char")|"string") {return DECSTRING;}
 "char" 	{return DECCHAR;}
